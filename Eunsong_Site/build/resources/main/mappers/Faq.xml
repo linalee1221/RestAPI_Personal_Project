@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org/DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.example.eunsong_site.dao.FaqDao">
+
+    <select id="findByTitleContaining"
+            parameterType="com.example.eunsong_site.paging.Criteria"
+            resultType="com.example.eunsong_site.model.Faq">
+        SELECT *
+        FROM (SELECT ROWNUM R,
+                     TT.*
+              FROM TB_FAQ_SSONG TT
+              WHERE TT.DELETE_YN = 'N'
+                AND TITLE LIKE '%' || #{title} || '%'
+                AND ROWNUM &lt;= (#{page} + 1) * #{size}
+              ORDER BY ID ASC)
+        WHERE R > #{page} * #{size}
+    </select>
+
+    <select id="findAll"
+            parameterType="com.example.eunsong_site.paging.Criteria"
+            resultType="com.example.eunsong_site.model.Faq">
+        SELECT *
+        FROM (SELECT ROWNUM R,
+                     TT.*
+              FROM TB_FAQ_SSONG TT
+              WHERE TT.DELETE_YN = 'N'
+                AND ROWNUM &lt;= (#{page} + 1) * #{size}
+              ORDER BY ID ASC)
+        WHERE R > #{page} * #{size}
+    </select>
+
+    <select id="selectTotalCount" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM TB_FAQ_SSONG
+        WHERE DELETE_YN = 'N'
+          AND TITLE LIKE '%' || #{title} || '%'
+    </select>
+
+    <select id="findById" parameterType="long" resultType="com.example.eunsong_site.model.Faq">
+        SELECT ID
+             , TITLE
+             , CONTENT
+             , DELETE_YN
+             , INSERT_TIME
+             , UPDATE_TIME
+             , DELETE_TIME
+        FROM TB_FAQ_SSONG
+        WHERE DELETE_YN = 'N'
+          AND ID = #{id}
+    </select>
+
+    <insert id="insertFaq" parameterType="com.example.eunsong_site.model.Faq">
+        INSERT INTO TB_FAQ_SSONG(
+        ID
+        ,TITLE
+        ,CONTENT
+        ,INSERT_TIME
+        ) VALUES (
+        SQ_TB_FAQ_SSONG.NEXTVAL
+        ,#{title}
+        ,#{content}
+        ,TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+        )
+
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            SELECT SQ_TB_FAQ_SSONG.CURRVAL FROM DUAL
+        </selectKey>
+    </insert>
+
+    <update id="updateFaq" parameterType="com.example.eunsong_site.model.Faq">
+        UPDATE TB_FAQ_SSONG
+        SET TITLE       = #{title}
+          , CONTENT     = #{content}
+          , INSERT_TIME = TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+        WHERE ID = #{id}
+    </update>
+
+    <update id="deleteFaq" parameterType="long">
+        UPDATE TB_FAQ_SSONG
+        SET DELETE_YN   = 'Y'
+          , DELETE_TIME = TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+        WHERE ID = #{id}
+    </update>
+
+    <update id="deleteAll">
+        UPDATE TB_FAQ_SSONG
+        SET DELETE_YN   = 'Y'
+          , DELETE_TIME = TO_DATE(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+    </update>
+
+</mapper>
+
